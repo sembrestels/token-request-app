@@ -41,9 +41,9 @@ contract TokenRequest is AragonApp {
     mapping(uint256 => TokenRequest) public tokenRequests; // ID => TokenRequest
     mapping(address => uint256[]) public addressesTokenRequestIds; // Sender address => List of ID's
 
-    event TokenRequestCreated(uint256 requestId);
-    event TokenRequestRefunded(address refundToAddress, address refundToken, uint256 refundAmount);
-    event TokenRequestFinalised(address requester, address depositToken, uint256 depositAmount, uint256 requestAmount);
+    event TokenRequestCreated(uint256 requestId, address requesterAddress, address depositToken, uint256 depositAmount, uint256 requestAmount);
+    event TokenRequestRefunded(uint256 requestId,address refundToAddress, address refundToken, uint256 refundAmount);
+    event TokenRequestFinalised(uint256 requestId, address requester, address depositToken, uint256 depositAmount, uint256 requestAmount);
 
     function initialize(address _tokenManager, address _vault) external onlyInit {
         initialized();
@@ -94,7 +94,7 @@ contract TokenRequest is AragonApp {
         tokenRequests[tokenRequestId] = TokenRequest(msg.sender, _depositToken, _depositAmount, _requestAmount);
         addressesTokenRequestIds[msg.sender].push(tokenRequestId);
 
-        emit TokenRequestCreated(tokenRequestId);
+        emit TokenRequestCreated(tokenRequestId, msg.sender, _depositToken, _depositAmount, _requestAmount);
 
         return tokenRequestId;
     }
@@ -122,7 +122,7 @@ contract TokenRequest is AragonApp {
 
         addressesTokenRequestIds[msg.sender].deleteItem(_tokenRequestId);
 
-        emit TokenRequestRefunded(refundToAddress, refundToken, refundAmount);
+        emit TokenRequestRefunded(_tokenRequestId, refundToAddress, refundToken, refundAmount);
     }
 
     /**
@@ -154,7 +154,7 @@ contract TokenRequest is AragonApp {
 
         tokenManager.mint(requesterAddress, requestAmount);
 
-        emit TokenRequestFinalised(requesterAddress, depositToken, depositAmount, requestAmount);
+        emit TokenRequestFinalised(_tokenRequestId, requesterAddress, depositToken, depositAmount, requestAmount);
     }
 
 }

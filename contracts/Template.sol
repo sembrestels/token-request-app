@@ -48,14 +48,30 @@ contract TemplateBase is APMNamehash {
 
         return base;
     }
+
+    function installApp(Kernel dao, bytes32 appId) internal returns (address) {
+        address instance = address(dao.newAppInstance(appId, latestVersionAppBase(appId)));
+        emit InstalledApp(instance, appId);
+        return instance;
+    }
+
+    function installDefaultApp(Kernel dao, bytes32 appId) internal returns (address) {
+        address instance = address(dao.newAppInstance(appId, latestVersionAppBase(appId), new bytes(0), true));
+        emit InstalledApp(instance, appId);
+        return instance;
+    }
 }
 
 
 contract Template is TemplateBase {
-    MiniMeTokenFactory tokenFactory;
-
     uint64 constant PCT = 10 ** 16;
-    address constant ANY_ENTITY = address(-1);
+
+    bytes32 internal VAULT_APP_ID = apmNamehash("vault");
+    bytes32 internal VOTING_APP_ID = apmNamehash("voting");
+    bytes32 internal FINANCE_APP_ID = apmNamehash("finance");
+    bytes32 internal TOKEN_MANAGER_APP_ID = apmNamehash("token-manager");
+
+    MiniMeTokenFactory tokenFactory;
 
     constructor(ENS ens) TemplateBase(DAOFactory(0), ens) public {
         tokenFactory = new MiniMeTokenFactory();
@@ -87,15 +103,18 @@ contract Template is TemplateBase {
         tokenRequest.initialize(tokenManager, vault);
         voting.initialize(token, 50 * PCT, 20 * PCT, 1 days);
 
-        acl.createPermission(this, tokenManager, tokenManager.MINT_ROLE(), this);
-        acl.createPermission(tokenRequest, tokenManager, tokenManager.MINT_ROLE(), root);
-        tokenManager.mint(root, 10e18); // Give ten tokens to root
-
-
-        acl.createPermission(tokenManager, voting, voting.CREATE_VOTES_ROLE(), root);
+        acl.createPermission(tokenManager, voting, voting.CREATE_VOTES_ROLE(), this);
         acl.createPermission(tokenManager, tokenRequest, tokenRequest.SET_TOKEN_MANAGER_ROLE(), root);
         acl.createPermission(tokenManager, tokenRequest, tokenRequest.SET_VAULT_ROLE(), root);
         acl.createPermission(voting, tokenRequest, tokenRequest.FINALISE_TOKEN_REQUEST_ROLE(), root);
+        acl.createPermission(this, tokenManager, tokenManager.MINT_ROLE(), this);
+        acl.grantPermission(tokenRequest, tokenManager, tokenManager.MINT_ROLE());
+        acl.grantPermission(tokenRequest, voting, voting.CREATE_VOTES_ROLE());
+
+        //acl.createPermission(tokenRequest, tokenManager, tokenManager.MINT_ROLE(), root);
+
+        tokenManager.mint(root, 10e18); // Give ten tokens to root
+
 
         // Clean up permissions
 
