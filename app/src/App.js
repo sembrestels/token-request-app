@@ -2,12 +2,12 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { useAragonApi } from '@aragon/api-react'
 import { Main, SidePanel, SyncIndicator, Badge, Header, Button } from '@aragon/ui'
+import NewRequest from './components/Panels/NewRequest'
 
 function App(props) {
   const [newRequestOpened, setNewRequestOpened] = useState(false)
-  const { compactMode } = props
-  console.log('props', props)
-
+  const { compactMode, acceptedTokens } = props
+  console.log('acceptedTokens ', acceptedTokens)
   return (
     <Main>
       <Header
@@ -29,7 +29,9 @@ function App(props) {
         }
       />
 
-      <SidePanel opened={newRequestOpened} onClose={() => {}} title="New transfer"></SidePanel>
+      <SidePanel opened={newRequestOpened} onClose={() => {}} title="New request">
+        <NewRequest tokens={acceptedTokens}></NewRequest>
+      </SidePanel>
     </Main>
   )
 }

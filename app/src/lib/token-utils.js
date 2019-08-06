@@ -8,37 +8,35 @@ import tokenNameBytesAbi from '../abi/token-name-bytes.json'
 // Some known tokens don’t strictly follow ERC-20 and it would be difficult to
 // adapt to every situation. The data listed in this map is used as a fallback
 // if either some part of their interface doesn't conform to a standard we
-// support.
+export const ETHER_TOKEN_FAKE_ADDRESS = '0x0000000000000000000000000000000000000000' // support.
+
 const KNOWN_TOKENS_FALLBACK = new Map([
   [
     'main',
     new Map([
-      [
-        '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
-        { symbol: 'DAI', name: 'Dai Stablecoin v1.0', decimals: '18' },
-      ],
+      ['0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359', { symbol: 'DAI', name: 'Dai Stablecoin v1.0', decimals: '18' }],
+    ]),
+  ],
+  [
+    'private',
+    new Map([
+      [ETHER_TOKEN_FAKE_ADDRESS, { symbol: 'ETH', name: 'Ether', decimals: '18' }],
+      ['0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359', { symbol: 'DAI', name: 'Dai Stablecoin v1.0', decimals: '18' }],
+      ['0x0d8775f648430679a709e98d2b0cb6250d2887ef', { symbol: 'BAT', name: 'Bassic attention token', decimals: '18' }],
     ]),
   ],
 ])
 
-export const ETHER_TOKEN_FAKE_ADDRESS =
-  '0x0000000000000000000000000000000000000000'
-
 export const isTokenVerified = (tokenAddress, networkType) =>
   // The verified list is without checksums
-  networkType === 'main'
-    ? ETHER_TOKEN_VERIFIED_ADDRESSES.has(tokenAddress.toLowerCase())
-    : true
+  networkType === 'main' ? ETHER_TOKEN_VERIFIED_ADDRESSES.has(tokenAddress.toLowerCase()) : true
 
 export const tokenDataFallback = (tokenAddress, fieldName, networkType) => {
   // The fallback list is without checksums
   const addressWithoutChecksum = tokenAddress.toLowerCase()
 
   const fallbacksForNetwork = KNOWN_TOKENS_FALLBACK.get(networkType)
-  if (
-    fallbacksForNetwork == null ||
-    !fallbacksForNetwork.has(addressWithoutChecksum)
-  ) {
+  if (fallbacksForNetwork == null || !fallbacksForNetwork.has(addressWithoutChecksum)) {
     return null
   }
   return fallbacksForNetwork.get(addressWithoutChecksum)[fieldName] || null

@@ -12,7 +12,7 @@ import "./lib/UintArrayLib.sol";
 * request tokens by calling createTokenRequest() to deposit funds and then calling finaliseTokenRequest() which will be called
 * via the forwarder if forwarding is successful, minting the user tokens.
 */
-contract TokenRequest is AragonApp {
+  contract TokenRequest is EtherTokenConstant, AragonApp {
 
     using SafeERC20 for ERC20;
     using UintArrayLib for uint256[];
@@ -36,6 +36,7 @@ contract TokenRequest is AragonApp {
 
     TokenManager public tokenManager;
     address public vault;
+    uint256 public lock;
 
     uint256 public nextTokenRequestId;
     mapping(uint256 => TokenRequest) public tokenRequests; // ID => TokenRequest
@@ -46,10 +47,11 @@ contract TokenRequest is AragonApp {
     event TokenRequestFinalised(uint256 requestId, address requester, address depositToken, uint256 depositAmount, uint256 requestAmount);
 
     function initialize(address _tokenManager, address _vault) external onlyInit {
-        initialized();
-
         tokenManager = TokenManager(_tokenManager);
         vault = _vault;
+        lock = 1;
+        initialized();
+        //tokens.push(0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359);
     }
 
     /**
