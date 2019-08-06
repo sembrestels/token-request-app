@@ -21,11 +21,9 @@ const tokenAbi = [].concat(tokenDecimalsAbi, tokenNameAbi, tokenSymbolAbi)
 
 const app = new Aragon()
 
-app
-  .call('tokenManager')
-  .subscribe(initialize, err =>
-    console.error(`Could not start background script execution due to the contract not loading token: ${err}`)
-  )
+forkJoin(app.call('tokenManager'), app.call('testAddress')).subscribe(initialize, err =>
+  console.error(`Could not start background script execution due to the contract not loading token: ${err}`)
+)
 
 async function initialize(tokenManagerAddress) {
   const network = await app

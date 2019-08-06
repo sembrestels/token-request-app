@@ -6,6 +6,7 @@ import "@aragon/os/contracts/common/SafeERC20.sol";
 import "@aragon/os/contracts/lib/token/ERC20.sol";
 import "@aragon/apps-token-manager/contracts/TokenManager.sol";
 import "./lib/UintArrayLib.sol";
+import "./lib/ArrayUtils.sol";
 
 /**
 * Expected use requires the FINALISE_TOKEN_REQUEST_ROLE permission be given exclusively to a forwarder. A user can then
@@ -20,12 +21,18 @@ import "./lib/UintArrayLib.sol";
     bytes32 constant public SET_TOKEN_MANAGER_ROLE = keccak256("SET_TOKEN_MANAGER_ROLE");
     bytes32 constant public SET_VAULT_ROLE = keccak256("SET_VAULT_ROLE");
     bytes32 constant public FINALISE_TOKEN_REQUEST_ROLE = keccak256("FINALISE_TOKEN_REQUEST_ROLE");
+    bytes32 constant public ADD_TOKEN_ROLE = keccak256("ADD_TOKEN_ROLE");
+    bytes32 constant public REMOVE_TOKEN_ROLE = keccak256("REMOVE_TOKEN_ROLE");
 
     string private constant ERROR_NO_AMOUNT = "TOKEN_REQUEST_NO_AMOUNT";
     string private constant ERROR_NOT_OWNER = "TOKEN_REQUEST_NOT_OWNER";
     string private constant ERROR_NO_DEPOSIT = "TOKEN_REQUEST_NO_DEPOSIT";
     string private constant ERROR_ETH_VALUE_MISMATCH = "TOKEN_REQUEST_ETH_VALUE_MISMATCH";
     string private constant ERROR_TOKEN_TRANSFER_REVERTED = "TOKEN_REQUEST_TOKEN_TRANSFER_REVERTED";
+    string private constant ERROR_CANNOT_ADD_TOKEN_MANAGER = "TOKEN_REQUEST_CANNOT_ADD_TOKEN_MANAGER";
+    string private constant ERROR_TOKEN_ALREADY_ADDED = "TOKEN_REQUEST_TOKEN_ALREADY_ADDED";
+    string private constant ERROR_TOKEN_NOT_CONTRACT = "TOKEN_REQUEST_TOKEN_NOT_CONTRACT";
+    string private constant ERROR_TOKEN_NOT_EXIST = "TOKEN_REQUEST_ERROR_TOKEN_NOT_EXIST";
 
     struct TokenRequest {
         address requesterAddress;
@@ -36,7 +43,11 @@ import "./lib/UintArrayLib.sol";
 
     TokenManager public tokenManager;
     address public vault;
-    uint256 public lock;
+
+    mapping(address => bool) public tokenAdded;
+    address[] public acceptedTokenList;
+
+    address public testAddress;
 
     uint256 public nextTokenRequestId;
     mapping(uint256 => TokenRequest) public tokenRequests; // ID => TokenRequest
@@ -45,11 +56,12 @@ import "./lib/UintArrayLib.sol";
     event TokenRequestCreated(uint256 requestId, address requesterAddress, address depositToken, uint256 depositAmount, uint256 requestAmount);
     event TokenRequestRefunded(uint256 requestId,address refundToAddress, address refundToken, uint256 refundAmount);
     event TokenRequestFinalised(uint256 requestId, address requester, address depositToken, uint256 depositAmount, uint256 requestAmount);
+    event AddToken(address indexed token);
+    event RemoveToken(address indexed token);
 
     function initialize(address _tokenManager, address _vault) external onlyInit {
         tokenManager = TokenManager(_tokenManager);
         vault = _vault;
-        lock = 1;
         initialized();
         //tokens.push(0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359);
     }
@@ -68,6 +80,38 @@ import "./lib/UintArrayLib.sol";
     */
     function setVault(address _vault) external auth(SET_VAULT_ROLE) {
         vault = _vault;
+    }
+
+    /**
+    * @notice Add `_token.symbol()` token to redemption list
+    * @param _token token address
+    */
+    function addToken(address _token) external auth(ADD_TOKEN_ROLE) {
+        require(_token != address(tokenManager), ERROR_CANNOT_ADD_TOKEN_MANAGER);
+        require(!tokenAdded[_token], ERROR_TOKEN_ALREADY_ADDED);
+
+        if (_token != ETH) {
+            require(isContract(_token), ERROR_TOKEN_NOT_CONTRACT);
+        }
+
+        tokenAdded[_token] = true;
+        acceptedTokenList.push(_token);
+
+        emit AddToken(_token);
+    }
+
+    /**
+    * @notice Remove `_token.symbol()` token from redemption list
+    * @param _token token address
+    */
+    function removeToken(address _token) external auth(REMOVE_TOKEN_ROLE) {
+        require(tokenAdded[_token], ERROR_TOKEN_NOT_EXIST);
+
+        tokenAdded[_token] = false;
+        //acceptedTokenList.deleteItem(_token);
+        
+
+        emit RemoveToken(_token);
     }
 
     /**

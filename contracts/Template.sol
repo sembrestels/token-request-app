@@ -94,14 +94,12 @@ contract Template is TemplateBase {
         Voting voting = Voting(dao.newAppInstance(votingAppId, latestVersionAppBase(votingAppId)));
         TokenManager tokenManager = TokenManager(dao.newAppInstance(tokenManagerAppId, latestVersionAppBase(tokenManagerAppId)));
 
+
         MiniMeToken token = tokenFactory.createCloneToken(MiniMeToken(0), 0, "Requestable token", 18, "RQT", true);
         token.changeController(tokenManager);
 
         // Initialize apps
-        vault.initialize();
-        tokenManager.initialize(token, true, 0);
-        tokenRequest.initialize(tokenManager, vault);
-        voting.initialize(token, 50 * PCT, 20 * PCT, 1 days);
+        initApps(vault, tokenManager, tokenRequest, voting, token);
 
         acl.createPermission(tokenManager, voting, voting.CREATE_VOTES_ROLE(), this);
         acl.createPermission(tokenManager, tokenRequest, tokenRequest.SET_TOKEN_MANAGER_ROLE(), root);
@@ -109,12 +107,13 @@ contract Template is TemplateBase {
         acl.createPermission(voting, tokenRequest, tokenRequest.FINALISE_TOKEN_REQUEST_ROLE(), root);
         acl.createPermission(this, tokenManager, tokenManager.MINT_ROLE(), this);
         acl.grantPermission(tokenRequest, tokenManager, tokenManager.MINT_ROLE());
+        acl.createPermission(this, tokenRequest,tokenRequest.ADD_TOKEN_ROLE(), this);
         acl.grantPermission(tokenRequest, voting, voting.CREATE_VOTES_ROLE());
 
         //acl.createPermission(tokenRequest, tokenManager, tokenManager.MINT_ROLE(), root);
 
         tokenManager.mint(root, 10e18); // Give ten tokens to root
-
+        createTokenForUser(root, tokenFactory, tokenRequest);
 
         // Clean up permissions
 
@@ -129,8 +128,22 @@ contract Template is TemplateBase {
         acl.grantPermission(voting, tokenManager, tokenManager.MINT_ROLE());
         acl.revokePermission(this, tokenManager, tokenManager.MINT_ROLE());
         acl.setPermissionManager(root, tokenManager, tokenManager.MINT_ROLE());
+        
 
         emit DeployInstance(dao);
     }
 
+    function initApps(Vault vault, TokenManager tokenManager, TokenRequest tokenRequest, Voting voting, MiniMeToken token) internal { 
+        vault.initialize();
+        tokenManager.initialize(token, true, 0);
+        tokenRequest.initialize(tokenManager, vault);
+        voting.initialize(token, 50 * PCT, 20 * PCT, 1 days);
+    }
+
+    function createTokenForUser(address root, MiniMeTokenFactory tokenFactory, TokenRequest tokenRequest) internal {  
+        MiniMeToken testToken = tokenFactory.createCloneToken(MiniMeToken(0), 0, "Lock token", 18, "LKT", true);
+        testToken.generateTokens(root, 300e18);
+        testToken.changeController(root);
+        tokenRequest.addToken(address(testToken));
+    }
 }

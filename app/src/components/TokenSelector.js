@@ -77,9 +77,7 @@ class TokenSelector extends React.Component {
   render() {
     const { customToken } = this.state
     const { activeIndex, label, labelCustomToken } = this.props
-    console.log('propps', this.props)
     const items = this.getItems()
-    console.log('itemssss ', items)
     return (
       <React.Fragment>
         <Field label={label}>

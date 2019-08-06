@@ -7,7 +7,6 @@ import NewRequest from './components/Panels/NewRequest'
 function App(props) {
   const [newRequestOpened, setNewRequestOpened] = useState(false)
   const { compactMode, acceptedTokens } = props
-  console.log('acceptedTokens ', acceptedTokens)
   return (
     <Main>
       <Header

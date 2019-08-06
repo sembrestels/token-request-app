@@ -48,7 +48,6 @@ export async function getTokenSymbol(app, address) {
   let tokenSymbol
   try {
     const token = app.external(address, tokenSymbolAbi)
-    tokenSymbol = await token.symbol().toPromise()
   } catch (err) {
     // Some tokens (e.g. DS-Token) use bytes32 as the return type for symbol().
     const token = app.external(address, tokenSymbolBytesAbi)
