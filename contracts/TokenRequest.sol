@@ -47,9 +47,10 @@ import "./lib/ArrayUtils.sol";
     mapping(address => bool) public tokenAdded;
     address[] public acceptedTokenList;
 
-    address public testAddress;
+    
 
     uint256 public nextTokenRequestId;
+    uint256 public testAddress;
     mapping(uint256 => TokenRequest) public tokenRequests; // ID => TokenRequest
     mapping(address => uint256[]) public addressesTokenRequestIds; // Sender address => List of ID's
 

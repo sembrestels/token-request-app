@@ -3,32 +3,29 @@ import PropTypes from 'prop-types'
 import { useAragonApi } from '@aragon/api-react'
 import { Main, SidePanel, SyncIndicator, Badge, Header, Button } from '@aragon/ui'
 import NewRequest from './components/Panels/NewRequest'
+import { useAppLogic } from './hooks/app-hooks'
+import requestIcon from './assets/icono.svg'
 
 function App(props) {
-  const [newRequestOpened, setNewRequestOpened] = useState(false)
-  const { compactMode, acceptedTokens } = props
+  const { panelState, isSyncing, acceptedTokens, account, token } = useAppLogic()
+
   return (
     <Main>
       <Header
         primary="Token Request"
         secondary={
-          <Button
-            mode="strong"
-            onClick={() => setNewRequestOpened(true)}
-            css={`
-              ${compactMode &&
-                `
-                        min-width: 40px;
-                        padding: 0;
-                      `}
-            `}
-          >
-            {compactMode ? <IconPlus /> : 'New Request'}
+          <Button mode="strong" onClick={panelState.requestOpen} icon={<img src={requestIcon} height="30px" alt="" />}>
+            {'New Request'}
           </Button>
         }
       />
 
-      <SidePanel opened={newRequestOpened} onClose={() => {}} title="New request">
+      <SidePanel
+        title="New request"
+        opened={panelState.visible}
+        onClose={panelState.requestClose}
+        onTransitionEnd={panelState.endTransition}
+      >
         <NewRequest tokens={acceptedTokens}></NewRequest>
       </SidePanel>
     </Main>
