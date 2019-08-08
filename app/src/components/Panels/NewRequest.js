@@ -66,7 +66,11 @@ function NewRequest({ network, panelOpened, request }) {
       console.log('selected decimals ', selectedTokenData.decimals)
       console.log('selected amount ', amount)
       console.log('selected requestedAmount ', requestedAmount)
-      request(selectedToken.value, amount, requestedAmount)
+      request(
+        selectedToken.value,
+        toDecimals(amount, selectedTokenData.decimals),
+        toDecimals(requestedAmount, selectedTokenData.decimals)
+      )
     },
     [request, selectedTokenData, amount, requestedAmount]
   )
