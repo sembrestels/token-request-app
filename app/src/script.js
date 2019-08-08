@@ -15,6 +15,7 @@ import {
   tokenDataFallback,
   getTokenSymbol,
   getTokenName,
+  getTokenDecimals,
 } from './lib/token-utils'
 
 const tokenAbi = [].concat(tokenDecimalsAbi, tokenNameAbi, tokenSymbolAbi)
@@ -28,16 +29,15 @@ app
   )
 
 async function initialize(tokenManagerAddress) {
+  let tokens
   const network = await app
     .network()
     .pipe(first())
     .toPromise()
   const tmContract = app.external(tokenManagerAddress, tmAbi)
-  const tokens = [
-    ETHER_TOKEN_FAKE_ADDRESS,
-    '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
-    '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
-  ]
+  tokens = await app.call('getAcceptedTokenList').toPromise()
+  tokens.unshift(ETHER_TOKEN_FAKE_ADDRESS)
+  console.log('tokens from contract ', tokens)
 
   const settings = {
     network,
@@ -123,7 +123,8 @@ async function updateConnectedAccount(state, { account }) {
 
 async function newTokenRequest(state, { requestId, requesterAddress, depositToken, depositAmount, requestAmount }) {
   const { account, requests } = state
-  const status = 'requested'
+  const status = 'active'
+  console.log('REQUESTEEEEEED')
 
   if (!(account && addressesEqual(lockAddress, account))) return state
 
@@ -222,7 +223,7 @@ async function loadTokenDecimals(tokenAddress, { network }) {
 
   let decimals
   try {
-    decimals = (await tokenContract.decimals().toPromise()) || fallback
+    decimals = (await getTokenDecimals(app, tokenAddress)) || fallback
     // tokenDecimals.set(tokenContract, decimals)
   } catch (err) {
     // decimals is optional

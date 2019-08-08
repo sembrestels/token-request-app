@@ -16,14 +16,11 @@ const BALANCE_NOT_ENOUGH_ERROR = Symbol('BALANCE_NOT_ENOUGH_ERROR')
 const DECIMALS_TOO_MANY_ERROR = Symbol('DECIMALS_TOO_MANY_ERROR')
 const tokenAbi = [].concat(tokenBalanceOfAbi, tokenDecimalsAbi, tokenSymbolAbi)
 
-function NewRequest({ network, connectedAccount, panelOpened }) {
+function NewRequest({ network, panelOpened, request }) {
   const { acceptedTokens, account, token } = useAppState()
   const api = useApi()
 
-  const [amount, setAmount] = useState({
-    error: NO_ERROR,
-    value: '',
-  })
+  const [amount, setAmount] = useState(0)
   const [selectedToken, setSelectedToken] = useState({
     coerced: false, // whether the token was coerced from a symbol to an address
     error: NO_ERROR,
@@ -32,7 +29,7 @@ function NewRequest({ network, connectedAccount, panelOpened }) {
   })
 
   const [selectedTokenData, setSelectedTokenData] = useState()
-  const [requestedAmount, setRequestedAmount] = useState()
+  const [requestedAmount, setRequestedAmount] = useState(0)
   const [tokenBalanceMessage, setTokenBalanceMessage] = useState('')
 
   useEffect(() => {
@@ -62,12 +59,20 @@ function NewRequest({ network, connectedAccount, panelOpened }) {
       : `You have ${userBalance === '0' ? 'no' : fromDecimals(userBalance, decimals)} ${symbol} available`
   }
 
-  const handleFormSubmit = useCallback(e => {
-    e.preventDefault()
-    console.log('submit')
-  })
+  const handleFormSubmit = useCallback(
+    e => {
+      e.preventDefault()
+      console.log('selected token ', selectedToken.value)
+      console.log('selected decimals ', selectedTokenData.decimals)
+      console.log('selected amount ', amount)
+      console.log('selected requestedAmount ', requestedAmount)
+      request(selectedToken.value, amount, requestedAmount)
+    },
+    [request, selectedTokenData, amount, requestedAmount]
+  )
 
   const handleRequestedAmountUpdate = useCallback(e => {
+    console.log('requested change ', e.target.value)
     setRequestedAmount(e.target.value)
   })
 
@@ -85,7 +90,6 @@ function NewRequest({ network, connectedAccount, panelOpened }) {
     if (!tokenIsAddress) {
       return
     }
-    // const tokenData = await loadTokenData(address)
     setSelectedToken(token)
   })
 
@@ -93,7 +97,7 @@ function NewRequest({ network, connectedAccount, panelOpened }) {
     // ETH
     if (addressesEqual(address, ETHER_TOKEN_FAKE_ADDRESS)) {
       const userBalance = await api
-        .web3Eth('getBalance', connectedAccount)
+        .web3Eth('getBalance', account)
         .toPromise()
         .catch(() => '-1')
 
@@ -109,7 +113,7 @@ function NewRequest({ network, connectedAccount, panelOpened }) {
     const token = api.external(address, tokenAbi)
 
     const userBalance = await token
-      .balanceOf(connectedAccount)
+      .balanceOf(account)
       .toPromise()
       .catch(() => '-1')
 
@@ -174,11 +178,6 @@ const ButtonWrapper = styled.div`
 const TokenBalance = styled.div`
   margin: 10px 0 20px;
 `
-
-// const StyledSafeLink = styled(SafeLink)`
-//   text-decoration-color: ${theme.accent};
-//   color: ${theme.accent};
-// `
 
 const VSpace = styled.div`
   height: ${p => (p.size || 1) * 5}px;

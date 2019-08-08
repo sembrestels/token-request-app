@@ -7,8 +7,8 @@ import { useAppLogic } from './hooks/app-hooks'
 import requestIcon from './assets/icono.svg'
 
 function App(props) {
-  const { panelState, isSyncing, acceptedTokens, account, token } = useAppLogic()
-
+  const { panelState, isSyncing, acceptedTokens, account, token, actions } = useAppLogic()
+  console.log('token', token)
   return (
     <Main>
       <Header
@@ -26,7 +26,7 @@ function App(props) {
         onClose={panelState.requestClose}
         onTransitionEnd={panelState.endTransition}
       >
-        <NewRequest tokens={acceptedTokens}></NewRequest>
+        <NewRequest panelOpened={panelState.opened} tokens={acceptedTokens} request={actions.request}></NewRequest>
       </SidePanel>
     </Main>
   )

@@ -4,6 +4,7 @@ import tokenSymbolAbi from '../abi/token-symbol.json'
 import tokenSymbolBytesAbi from '../abi/token-symbol-bytes.json'
 import tokenNameAbi from '../abi/token-name.json'
 import tokenNameBytesAbi from '../abi/token-name-bytes.json'
+import tokenDecimalsAbi from '../abi/token-decimals.json'
 
 // Some known tokens don’t strictly follow ERC-20 and it would be difficult to
 // adapt to every situation. The data listed in this map is used as a fallback
@@ -46,11 +47,13 @@ export async function getTokenSymbol(app, address) {
   // Symbol is optional; note that aragon.js doesn't return an error (only an falsey value) when
   // getting this value fails
   let tokenSymbol
+  let token
   try {
-    const token = app.external(address, tokenSymbolAbi)
+    token = app.external(address, tokenSymbolAbi)
+    tokenSymbol = await token.symbol().toPromise()
   } catch (err) {
     // Some tokens (e.g. DS-Token) use bytes32 as the return type for symbol().
-    const token = app.external(address, tokenSymbolBytesAbi)
+    token = app.external(address, tokenSymbolBytesAbi)
     tokenSymbol = toUtf8(await token.symbol().toPromise())
   }
 
@@ -71,4 +74,18 @@ export async function getTokenName(app, address) {
   }
 
   return tokenName || null
+}
+
+export async function getTokenDecimals(app, address) {
+  // Name is optional; note that aragon.js doesn't return an error (only an falsey value) when
+  // getting this value fails
+  let tokenDecimals
+  try {
+    const token = app.external(address, tokenDecimalsAbi)
+    tokenDecimals = await token.decimals().toPromise()
+  } catch (err) {
+    console.log(err)
+  }
+
+  return tokenDecimals || null
 }

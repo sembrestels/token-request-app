@@ -141,7 +141,7 @@ contract Template is TemplateBase {
     }
 
     function createTokenForUser(address root, MiniMeTokenFactory tokenFactory, TokenRequest tokenRequest) internal {  
-        MiniMeToken testToken = tokenFactory.createCloneToken(MiniMeToken(0), 0, "Lock token", 18, "LKT", true);
+        MiniMeToken testToken = tokenFactory.createCloneToken(MiniMeToken(0), 0, "TestToken", 18, "TST", true);
         testToken.generateTokens(root, 300e18);
         testToken.changeController(root);
         tokenRequest.addToken(address(testToken));

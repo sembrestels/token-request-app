@@ -14,16 +14,9 @@ export function formatDecimals(value, digits) {
   }
 }
 
-export function formatTokenAmount(
-  amount,
-  isIncoming,
-  decimals = 0,
-  displaySign = false,
-  { rounding = 2 } = {}
-) {
+export function formatTokenAmount(amount, isIncoming, decimals = 0, displaySign = false, { rounding = 2 } = {}) {
   return (
-    (displaySign ? (isIncoming ? '+' : '-') : '') +
-    formatDecimals(round(amount / Math.pow(10, decimals), rounding), 18)
+    (displaySign ? (isIncoming ? '+' : '-') : '') + formatDecimals(round(amount / Math.pow(10, decimals), rounding), 18)
   )
 }
 
@@ -102,6 +95,7 @@ export function fromDecimals(num, decimals, { truncate = true } = {}) {
  * @returns {string} formatted number
  */
 export function toDecimals(num, decimals, { truncate = true } = {}) {
+  console.log('num ', num)
   const [whole, dec] = splitDecimalNumber(num)
   if (!whole && !dec) {
     return '0'

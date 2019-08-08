@@ -17,6 +17,7 @@ import "./lib/ArrayUtils.sol";
 
     using SafeERC20 for ERC20;
     using UintArrayLib for uint256[];
+    using ArrayUtils for address[];
 
     bytes32 constant public SET_TOKEN_MANAGER_ROLE = keccak256("SET_TOKEN_MANAGER_ROLE");
     bytes32 constant public SET_VAULT_ROLE = keccak256("SET_VAULT_ROLE");
@@ -46,8 +47,6 @@ import "./lib/ArrayUtils.sol";
 
     mapping(address => bool) public tokenAdded;
     address[] public acceptedTokenList;
-
-    
 
     uint256 public nextTokenRequestId;
     uint256 public testAddress;
@@ -109,7 +108,7 @@ import "./lib/ArrayUtils.sol";
         require(tokenAdded[_token], ERROR_TOKEN_NOT_EXIST);
 
         tokenAdded[_token] = false;
-        //acceptedTokenList.deleteItem(_token);
+        acceptedTokenList.deleteItem(_token);
         
 
         emit RemoveToken(_token);
@@ -202,6 +201,14 @@ import "./lib/ArrayUtils.sol";
         tokenManager.mint(requesterAddress, requestAmount);
 
         emit TokenRequestFinalised(_tokenRequestId, requesterAddress, depositToken, depositAmount, requestAmount);
+    }
+
+    function getAcceptedTokenList()
+        public
+        view
+        returns (address[])
+    {
+        return acceptedTokenList;
     }
 
 }
