@@ -7,6 +7,15 @@ import RequestTable from '../components/RequestTable'
 
 const Requests = React.memo(({ requests, token }) => {
   console.log('REQQQQQ ', requests)
-  return <Split primary={<RequestTable requests={requests} token={token} />} secondary={<span />} />
+  return (
+    <Split
+      primary={
+        <>
+          <RequestTable requests={requests} token={token} /> <RequestTable requests={requests} token={token} />
+        </>
+      }
+      secondary={<span />}
+    />
+  )
 })
 export default Requests
