@@ -34,4 +34,4 @@ export function shortenAddress(address, charsLength = 4) {
 }
 
 // Re-export some web3-utils functions
-export { isAddress, toChecksumAddress, toUtf8, soliditySha3 } from 'web3-utils'
+export { isAddress, toChecksumAddress, toUtf8, soliditySha3, toWei } from 'web3-utils'

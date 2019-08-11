@@ -95,7 +95,6 @@ export function fromDecimals(num, decimals, { truncate = true } = {}) {
  * @returns {string} formatted number
  */
 export function toDecimals(num, decimals, { truncate = true } = {}) {
-  console.log('num ', num)
   const [whole, dec] = splitDecimalNumber(num)
   if (!whole && !dec) {
     return '0'

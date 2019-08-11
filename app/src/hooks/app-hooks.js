@@ -6,8 +6,8 @@ export function useRequestAction(onDone) {
   const api = useApi()
 
   return useCallback(
-    (depositTokenAddress, depositAmount, requestAmount) => {
-      api.createTokenRequest(depositTokenAddress, depositAmount, requestAmount).toPromise()
+    (depositTokenAddress, depositAmount, requestAmount, intentParams) => {
+      api.createTokenRequest(depositTokenAddress, depositAmount, requestAmount, intentParams).toPromise()
       onDone()
     },
     [api, onDone]
@@ -15,7 +15,7 @@ export function useRequestAction(onDone) {
 }
 
 export function useAppLogic() {
-  const { acceptedTokens, account, token, isSyncing, ready } = useAppState()
+  const { acceptedTokens, account, token, isSyncing, ready, requests, userRequests } = useAppState()
 
   const panelState = useSidePanel()
 
@@ -30,5 +30,6 @@ export function useAppLogic() {
     account,
     token,
     actions,
+    requests,
   }
 }

@@ -16,7 +16,7 @@ const BALANCE_NOT_ENOUGH_ERROR = Symbol('BALANCE_NOT_ENOUGH_ERROR')
 const DECIMALS_TOO_MANY_ERROR = Symbol('DECIMALS_TOO_MANY_ERROR')
 const tokenAbi = [].concat(tokenBalanceOfAbi, tokenDecimalsAbi, tokenSymbolAbi)
 
-function NewRequest({ network, panelOpened, request }) {
+function NewRequest({ network, panelOpened, onRequest }) {
   const { acceptedTokens, account, token } = useAppState()
   const api = useApi()
 
@@ -62,15 +62,12 @@ function NewRequest({ network, panelOpened, request }) {
   const handleFormSubmit = useCallback(
     e => {
       e.preventDefault()
-      console.log('selected token ', selectedToken.value)
-      console.log('selected decimals ', selectedTokenData.decimals)
-      console.log('selected amount ', amount)
-      console.log('selected requestedAmount ', requestedAmount)
-      const formatedamount = toDecimals(amount, selectedTokenData.decimals)
-      const decimals = toDecimals(requestedAmount, selectedTokenData.decimals)
-      request(selectedToken.value, formatedamount, decimals)
+      const depositAmount = toDecimals(amount, selectedTokenData.decimals)
+      const requested = toDecimals(requestedAmount, Number(token.decimals))
+
+      onRequest(selectedToken.value, depositAmount, requested)
     },
-    [request, selectedTokenData, amount, requestedAmount]
+    [onRequest, token, selectedTokenData, amount, requestedAmount]
   )
 
   const handleRequestedAmountUpdate = useCallback(e => {
@@ -159,10 +156,17 @@ function NewRequest({ network, panelOpened, request }) {
         </Text>
       </TokenBalance>
       <Field label="Amount">
-        <TextInput.Number value={amount.value} onChange={handleAmountUpdate} min={0} step="any" required wide />
+        <TextInput.Number value={amount} onChange={handleAmountUpdate} min={0} step="any" required wide />
       </Field>
       <Field label="Requested Amount">
-        <TextInput value={requestedAmount} onChange={handleRequestedAmountUpdate} wide />
+        <TextInput.Number
+          value={requestedAmount}
+          onChange={handleRequestedAmountUpdate}
+          min={0}
+          step="any"
+          required
+          wide
+        />
       </Field>
       <ButtonWrapper>
         <Button wide mode="strong" type="submit" disabled={false}>

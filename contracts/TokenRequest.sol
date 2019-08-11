@@ -40,6 +40,7 @@ import "./lib/ArrayUtils.sol";
         address depositToken;
         uint256 depositAmount;
         uint256 requestAmount;
+        uint64 date;
     }
 
     TokenManager public tokenManager;
@@ -53,7 +54,7 @@ import "./lib/ArrayUtils.sol";
     mapping(uint256 => TokenRequest) public tokenRequests; // ID => TokenRequest
     mapping(address => uint256[]) public addressesTokenRequestIds; // Sender address => List of ID's
 
-    event TokenRequestCreated(uint256 requestId, address requesterAddress, address depositToken, uint256 depositAmount, uint256 requestAmount);
+    event TokenRequestCreated(uint256 requestId, address requesterAddress, address depositToken, uint256 depositAmount, uint256 requestAmount, uint64 date);
     event TokenRequestRefunded(uint256 requestId,address refundToAddress, address refundToken, uint256 refundAmount);
     event TokenRequestFinalised(uint256 requestId, address requester, address depositToken, uint256 depositAmount, uint256 requestAmount);
     event AddToken(address indexed token);
@@ -115,7 +116,7 @@ import "./lib/ArrayUtils.sol";
     }
 
     /**
-    * @notice Create a token request depositing `@tokenAmount(_depositToken, _depositAmount, true, _depositToken.decimals(): uint256)` in exchange for `@tokenAmount(self.tokenManager().token(): address, _requestAmount, true, self.tokenManager().token().decimals(): uint256)`
+    * 
     * @dev Note the above radspec string seems to need to be on a single line. When split compile errors occur.
     * @param _depositToken Address of the token being deposited
     * @param _depositAmount Amount of the token being deposited
@@ -124,7 +125,6 @@ import "./lib/ArrayUtils.sol";
     function createTokenRequest(address _depositToken, uint256 _depositAmount, uint256 _requestAmount)
         external
         payable
-        returns (uint256)
     {
         require(_depositAmount > 0, ERROR_NO_AMOUNT);
 
@@ -137,12 +137,12 @@ import "./lib/ArrayUtils.sol";
         uint256 tokenRequestId = nextTokenRequestId;
         nextTokenRequestId++;
 
-        tokenRequests[tokenRequestId] = TokenRequest(msg.sender, _depositToken, _depositAmount, _requestAmount);
+        uint64 date = getTimestamp64();
+        tokenRequests[tokenRequestId] = TokenRequest(msg.sender, _depositToken, _depositAmount, _requestAmount, date);
         addressesTokenRequestIds[msg.sender].push(tokenRequestId);
 
-        emit TokenRequestCreated(tokenRequestId, msg.sender, _depositToken, _depositAmount, _requestAmount);
+        emit TokenRequestCreated(tokenRequestId, msg.sender, _depositToken, _depositAmount, _requestAmount, date);
 
-        return tokenRequestId;
     }
 
     /**

@@ -60,7 +60,7 @@ async function createStore(tokenManagerContract, tokens, settings) {
         case events.SYNC_STATUS_SYNCED:
           return { ...nextState, isSyncing: false }
         case 'TokenRequestCreated':
-          return newTokenRequest(nextState, returnValues)
+          return newTokenRequest(nextState, returnValues, settings)
         case 'TokenRequestRefunded':
           return requestRefunded(nextState, returnValues)
         case 'TokenRequestFinalised':
@@ -96,6 +96,7 @@ function initializeState(state, tokenManagerContract, tokens, settings) {
         isSyncing: true,
         token,
         acceptedTokens: acceptedTokens,
+        requests: [],
       }
     } catch (error) {
       console.error('Error initializing state: ', error)
@@ -112,25 +113,42 @@ const getAcceptedTokens = async (tokens, settings) => {
 }
 
 async function updateConnectedAccount(state, { account }) {
-  const requests = []
-
   return {
     ...state,
-    requests,
     account,
   }
 }
 
-async function newTokenRequest(state, { requestId, requesterAddress, depositToken, depositAmount, requestAmount }) {
+async function newTokenRequest(
+  state,
+  { requestId, requesterAddress, depositToken, depositAmount, requestAmount, date },
+  settings
+) {
   const { account, requests } = state
-  const status = 'active'
   console.log('REQUESTEEEEEED')
 
-  if (!(account && addressesEqual(lockAddress, account))) return state
+  if (!account || account != requesterAddress) return state
+
+  const status = 'pending'
+  const { decimals, name, symbol } = await getTokenData(depositToken, settings)
 
   return {
     ...state,
-    requests: [...requests, { requestId, requesterAddress, depositToken, depositAmount, requestAmount, status }],
+    requests: [
+      ...requests,
+      {
+        requestId,
+        requesterAddress,
+        depositToken,
+        depositDecimals: decimals,
+        depositName: name,
+        depositSymbol: symbol,
+        depositAmount,
+        requestAmount,
+        status,
+        date: marshallDate(date),
+      },
+    ],
   }
 }
 
@@ -230,6 +248,12 @@ async function loadTokenDecimals(tokenAddress, { network }) {
     decimals = fallback
   }
   return decimals
+}
+
+function marshallDate(date) {
+  // Represent dates as real numbers, as it's very unlikely they'll hit the limit...
+  // Adjust for js time (in ms vs s)
+  return parseInt(date, 10) * 1000
 }
 
 function getBlockNumber() {
