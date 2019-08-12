@@ -99,10 +99,6 @@ export const formatTokenAmountSymbol = (
   displaySign = false,
   { rounding = 2 } = {}
 ) => {
-  console.log('symbol ', symbol)
-  console.log('amount ', amount)
-  console.log('isIncoming', isIncoming)
-  console.log('decimals ', decimals)
   const formattedAmount = formatTokenAmount(amount, isIncoming, decimals)
 
   return `${formattedAmount} ${symbol}`

@@ -1,20 +1,33 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Box, GU, Split } from '@aragon/ui'
 import EmptyState from './EmptyState'
-import RequestCardGroup from '../components/RequestCard/RequestCardGroup'
-import RequestCard from '../components/RequestCard/RequestCard'
 import RequestTable from '../components/RequestTable'
+import { requestStatus } from '../lib/constants'
+import RequestInfo from '../components/RequestInfo'
+import { useAppState, useApi } from '@aragon/api-react'
 
-const Requests = React.memo(({ requests, token }) => {
-  console.log('REQQQQQ ', requests)
+const useRequests = requests => {
+  const pendingRequests = requests.filter(request => request.status === requestStatus.PENDING)
+  const rejectedRequests = requests.filter(request => request.status === requestStatus.REJECTED)
+  const approvedRequests = requests.filter(request => request.status === requestStatus.APPROVED)
+  return { pendingRequests, rejectedRequests, approvedRequests }
+}
+
+const Requests = React.memo(({ requests, token, selectRequest, selectedRequest }) => {
+  console.log('selectedRequest ', selectedRequest)
+  const { ready } = useAppState()
+
+  console.log('readyyyy ', ready)
+  const { pendingRequests, rejectedRequests, approvedRequests } = useRequests(requests)
+
   return (
     <Split
       primary={
         <>
-          <RequestTable requests={requests} token={token} /> <RequestTable requests={requests} token={token} />
+          <RequestTable requests={pendingRequests} token={token} title={'Pending'} onMoreInfo={selectRequest} />
         </>
       }
-      secondary={<span />}
+      secondary={selectedRequest ? <RequestInfo request={selectedRequest} token={token} /> : null}
     />
   )
 })

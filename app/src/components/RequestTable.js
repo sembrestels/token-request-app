@@ -1,6 +1,17 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import styled from 'styled-components'
-import { DataView, Text, Countdown, Box, useTheme, ContextMenu, ContextMenuItem, IconWallet, theme } from '@aragon/ui'
+import {
+  DataView,
+  Text,
+  Countdown,
+  Box,
+  useTheme,
+  ContextMenu,
+  ContextMenuItem,
+  IconWallet,
+  theme,
+  IconAttention,
+} from '@aragon/ui'
 import { formatTokenAmount, toHours } from '../lib/math-utils'
 import { formatTokenAmountSymbol } from '../lib/token-utils'
 import { format } from 'date-fns'
@@ -9,14 +20,17 @@ import { request } from 'https'
 
 const PAGINATION = 10
 
-function RequestTable({ requests, token }) {
+function RequestTable({ requests, token, title, onMoreInfo }) {
+  const handleOnMoreInfo = useCallback(
+    requestId => {
+      onMoreInfo(requestId)
+      console.log('requessssssst info', requestId)
+    },
+    [onMoreInfo]
+  )
+
   return (
     <>
-      <Header>
-        <Title>
-          <span>Active Requests </span>
-        </Title>
-      </Header>
       {requests.length > 0 ? (
         <DataView
           fields={['Date', 'Deposited', 'Requested', 'Actions']}
@@ -25,6 +39,8 @@ function RequestTable({ requests, token }) {
             r.date,
             r.depositAmount,
             r.depositSymbol,
+            r.depositToken,
+            r.depositName,
             r.depositDecimals,
             r.requestAmount,
             token.symbol,
@@ -35,6 +51,8 @@ function RequestTable({ requests, token }) {
             date,
             depositAmount,
             depositSymbol,
+            depositTokenAddress,
+            depositName,
             depositDecimals,
             requestedAmount,
             requestedSymbol,
@@ -44,6 +62,12 @@ function RequestTable({ requests, token }) {
             <Text>{`${formatTokenAmountSymbol(depositSymbol, depositAmount, false, depositDecimals)} `}</Text>,
             <Text>{`${formatTokenAmountSymbol(requestedSymbol, requestedAmount, false, requestedDecimals)} `}</Text>,
             <ContextMenu>
+              <ContextMenuItem key={requestId} onClick={() => handleOnMoreInfo(requestId)}>
+                <IconWrapper>
+                  <IconAttention />
+                </IconWrapper>
+                <div css="margin-left: 15px">Info</div>
+              </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
                   console.log('requestId', requestId)

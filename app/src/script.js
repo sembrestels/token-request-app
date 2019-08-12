@@ -9,6 +9,7 @@ import tokenNameAbi from './abi/token-name.json'
 import tokenSymbolAbi from './abi/token-symbol.json'
 import tmAbi from './abi/tokenManager.json'
 import retryEvery from './lib/retry-every'
+import { requestStatus } from './lib/constants'
 import {
   ETHER_TOKEN_FAKE_ADDRESS,
   isTokenVerified,
@@ -125,11 +126,10 @@ async function newTokenRequest(
   settings
 ) {
   const { account, requests } = state
-  console.log('REQUESTEEEEEED')
 
   if (!account || account != requesterAddress) return state
 
-  const status = 'pending'
+  const status = requestStatus.PENDING
   const { decimals, name, symbol } = await getTokenData(depositToken, settings)
 
   return {

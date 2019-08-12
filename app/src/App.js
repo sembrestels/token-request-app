@@ -11,10 +11,19 @@ import Requests from './screens/Requests'
 import MainButton from './components/MainButton'
 
 function App(props) {
-  const { panelState, isSyncing, acceptedTokens, account, token, actions, requests } = useAppLogic()
+  const {
+    panelState,
+    isSyncing,
+    acceptedTokens,
+    account,
+    token,
+    actions,
+    requests,
+    selectedRequest,
+    selectRequest,
+  } = useAppLogic()
   const api = useApi()
 
-  console.log('requests ', requests)
   const handleRequest = async (tokenAddress, depositAmount, requestedAmount) => {
     let intentParams
     if (tokenAddress === ETHER_TOKEN_FAKE_ADDRESS) {
@@ -50,7 +59,16 @@ function App(props) {
           />
         }
       />
-      {!requests ? <span /> : <Requests requests={requests} token={token}></Requests>}
+      {!requests ? (
+        <span />
+      ) : (
+        <Requests
+          requests={requests}
+          token={token}
+          selectRequest={selectRequest}
+          selectedRequest={selectedRequest}
+        ></Requests>
+      )}
       <SidePanel
         title="New request"
         opened={panelState.visible}

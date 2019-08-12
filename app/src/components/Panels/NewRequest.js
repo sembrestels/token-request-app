@@ -44,7 +44,6 @@ function NewRequest({ network, panelOpened, onRequest }) {
   }, [selectedToken.index])
 
   useEffect(() => {
-    console.log('selected token data ', selectedTokenData)
     // const tokenBalanceMessage = renderBalanceForSelectedToken(selectedToken)
   }, [selectedTokenData])
 
