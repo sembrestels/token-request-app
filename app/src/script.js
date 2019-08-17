@@ -23,6 +23,8 @@ const tokenAbi = [].concat(tokenDecimalsAbi, tokenNameAbi, tokenSymbolAbi)
 
 const app = new Aragon()
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
 app
   .call('tokenManager')
   .subscribe(initialize, err =>
@@ -126,11 +128,15 @@ async function newTokenRequest(
   settings
 ) {
   const { account, requests } = state
+  let status
+  if (!account) return state
 
-  if (!account || account != requesterAddress) return state
-
-  const status = requestStatus.PENDING
   const { decimals, name, symbol } = await getTokenData(depositToken, settings)
+
+  const tokenRequestList = await app.call('getTokenRequest', requestId).toPromise()
+  if (tokenRequestList.requesterAddress != ZERO_ADDRESS) {
+    status = requestStatus.PENDING
+  }
 
   return {
     ...state,
@@ -158,6 +164,7 @@ async function requestRefunded(state, { requestId }) {
   }
 }
 async function requestFinalised(state, { requestId }) {
+  console.log('request accepted ', requestId)
   return {
     ...state,
   }

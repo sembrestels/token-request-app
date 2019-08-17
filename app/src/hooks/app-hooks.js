@@ -1,14 +1,39 @@
 import { useState, useMemo, useCallback } from 'react'
-import { useAppState, useApi } from '@aragon/api-react'
+import { useAppState, useApi, useAragonApi } from '@aragon/api-react'
 import { useSidePanel } from './utils-hooks'
+import { getEventArgument, getLog } from '../lib/web3-utils'
+import { TextEncoder } from 'util'
+var Web3EthAbi = require('web3-eth-abi')
 
 export function useRequestAction(onDone) {
-  const api = useApi()
+  const { api } = useAragonApi()
 
   return useCallback(
     (depositTokenAddress, depositAmount, requestAmount, intentParams) => {
-      api.createTokenRequest(depositTokenAddress, depositAmount, requestAmount, intentParams).toPromise()
-      onDone()
+      try {
+        api.createTokenRequest(depositTokenAddress, depositAmount, requestAmount, intentParams).toPromise()
+
+        onDone()
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    [api, onDone]
+  )
+}
+
+export function useSubmitAction(onDone) {
+  const { api } = useAragonApi()
+
+  return useCallback(
+    requestId => {
+      try {
+        api.finaliseTokenRequest(requestId).toPromise()
+
+        onDone()
+      } catch (error) {
+        console.error(error)
+      }
     },
     [api, onDone]
   )
@@ -47,6 +72,7 @@ export function useAppLogic() {
 
   const actions = {
     request: useRequestAction(panelState.requestClose),
+    submit: useSubmitAction(panelState.requestClose),
   }
 
   return {

@@ -8,19 +8,23 @@ import {
   useTheme,
   ContextMenu,
   ContextMenuItem,
-  IconWallet,
+  IconCoin,
   theme,
-  IconAttention,
+  IconInfo,
+  IconVote,
 } from '@aragon/ui'
 import { formatTokenAmount, toHours } from '../lib/math-utils'
 import { formatTokenAmountSymbol } from '../lib/token-utils'
 import { format } from 'date-fns'
 import EmptyState from '../screens/EmptyState'
 import { request } from 'https'
+import { requestStatus } from '../lib/constants'
 
 const PAGINATION = 10
 
-function RequestTable({ requests, token, title, onMoreInfo }) {
+function RequestTable({ requests, token, onMoreInfo, onSubmit }) {
+  console.log('requests ', requests)
+
   const handleOnMoreInfo = useCallback(
     requestId => {
       onMoreInfo(requestId)
@@ -29,11 +33,18 @@ function RequestTable({ requests, token, title, onMoreInfo }) {
     [onMoreInfo]
   )
 
+  const handleSubmit = useCallback(
+    requestId => {
+      onSubmit(requestId)
+    },
+    [onSubmit]
+  )
+
   return (
     <>
       {requests.length > 0 ? (
         <DataView
-          fields={['Date', 'Deposited', 'Requested', 'Actions']}
+          fields={['Date', 'Deposited', 'Requested', 'Status', 'Actions']}
           entries={requests.map(r => [
             r.requestId,
             r.date,
@@ -43,6 +54,7 @@ function RequestTable({ requests, token, title, onMoreInfo }) {
             r.depositName,
             r.depositDecimals,
             r.requestAmount,
+            r.status,
             token.symbol,
             token.decimals,
           ])}
@@ -55,26 +67,36 @@ function RequestTable({ requests, token, title, onMoreInfo }) {
             depositName,
             depositDecimals,
             requestedAmount,
+            status,
             requestedSymbol,
             requestedDecimals,
           ]) => [
             <time>{format(date, 'dd/MM/yy')}</time>,
             <Text>{`${formatTokenAmountSymbol(depositSymbol, depositAmount, false, depositDecimals)} `}</Text>,
             <Text>{`${formatTokenAmountSymbol(requestedSymbol, requestedAmount, false, requestedDecimals)} `}</Text>,
+            <Status positive={true}>{`${status}`}</Status>,
             <ContextMenu>
-              <ContextMenuItem key={requestId} onClick={() => handleOnMoreInfo(requestId)}>
+              <ContextMenuItem onClick={() => handleOnMoreInfo(requestId)}>
                 <IconWrapper>
-                  <IconAttention />
+                  <IconInfo />
                 </IconWrapper>
                 <div css="margin-left: 15px">Info</div>
               </ContextMenuItem>
+              {status === requestStatus.PENDING && (
+                <ContextMenuItem onClick={() => handleSubmit(requestId)}>
+                  <IconWrapper>
+                    <IconVote />
+                  </IconWrapper>
+                  <div css="margin-left: 15px">Submit</div>
+                </ContextMenuItem>
+              )}
               <ContextMenuItem
                 onClick={() => {
                   console.log('requestId', requestId)
                 }}
               >
                 <IconWrapper>
-                  <IconWallet />
+                  <IconCoin />
                 </IconWrapper>
                 <div css="margin-left: 15px">Withdraw</div>
               </ContextMenuItem>
@@ -120,6 +142,11 @@ const IconWrapper = styled.span`
   width: 22px;
   height: 22px;
   color: ${theme.textSecondary};
+`
+
+const Status = styled(Text)`
+  font-weight: 600;
+  color: ${({ positive }) => (positive ? theme.infoPermissionsIcon : theme.negative)};
 `
 
 export default RequestTable

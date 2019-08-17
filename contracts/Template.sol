@@ -109,6 +109,7 @@ contract Template is TemplateBase {
         acl.grantPermission(tokenRequest, tokenManager, tokenManager.MINT_ROLE());
         acl.createPermission(this, tokenRequest,tokenRequest.ADD_TOKEN_ROLE(), this);
         acl.grantPermission(tokenRequest, voting, voting.CREATE_VOTES_ROLE());
+        acl.createPermission(root, tokenRequest, tokenRequest.SUBMIT_TOKEN_REQUEST_ROLE(), root);
 
         //acl.createPermission(tokenRequest, tokenManager, tokenManager.MINT_ROLE(), root);
 

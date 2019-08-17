@@ -13,7 +13,7 @@ const useRequests = requests => {
   return { pendingRequests, rejectedRequests, approvedRequests }
 }
 
-const Requests = React.memo(({ requests, token, selectRequest, selectedRequest }) => {
+const Requests = React.memo(({ requests, token, selectRequest, selectedRequest, onSubmit }) => {
   console.log('selectedRequest ', selectedRequest)
   const { ready } = useAppState()
 
@@ -24,7 +24,7 @@ const Requests = React.memo(({ requests, token, selectRequest, selectedRequest }
     <Split
       primary={
         <>
-          <RequestTable requests={pendingRequests} token={token} title={'Pending'} onMoreInfo={selectRequest} />
+          <RequestTable requests={pendingRequests} token={token} onMoreInfo={selectRequest} onSubmit={onSubmit} />
         </>
       }
       secondary={selectedRequest ? <RequestInfo request={selectedRequest} token={token} /> : null}

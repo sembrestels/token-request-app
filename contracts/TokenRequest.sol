@@ -24,6 +24,7 @@ import "./lib/ArrayUtils.sol";
     bytes32 constant public FINALISE_TOKEN_REQUEST_ROLE = keccak256("FINALISE_TOKEN_REQUEST_ROLE");
     bytes32 constant public ADD_TOKEN_ROLE = keccak256("ADD_TOKEN_ROLE");
     bytes32 constant public REMOVE_TOKEN_ROLE = keccak256("REMOVE_TOKEN_ROLE");
+    bytes32 constant public SUBMIT_TOKEN_REQUEST_ROLE = keccak256("SUBMIT_TOKEN_REQUEST_ROLE");
 
     string private constant ERROR_NO_AMOUNT = "TOKEN_REQUEST_NO_AMOUNT";
     string private constant ERROR_NOT_OWNER = "TOKEN_REQUEST_NOT_OWNER";
@@ -125,6 +126,7 @@ import "./lib/ArrayUtils.sol";
     function createTokenRequest(address _depositToken, uint256 _depositAmount, uint256 _requestAmount)
         external
         payable
+        returns (uint256)
     {
         require(_depositAmount > 0, ERROR_NO_AMOUNT);
 
@@ -142,6 +144,7 @@ import "./lib/ArrayUtils.sol";
         addressesTokenRequestIds[msg.sender].push(tokenRequestId);
 
         emit TokenRequestCreated(tokenRequestId, msg.sender, _depositToken, _depositAmount, _requestAmount, date);
+        return tokenRequestId;
 
     }
 
@@ -170,6 +173,10 @@ import "./lib/ArrayUtils.sol";
 
         emit TokenRequestRefunded(_tokenRequestId, refundToAddress, refundToken, refundAmount);
     }
+
+    // function submitTokenRequest(uint256 _tokenRequestId) external auth(SUBMIT_TOKEN_REQUEST_ROLE) {
+    //     finaliseTokenRequest(_tokenRequestId);
+    // }
 
     /**
     * @notice Finalise the token request with id `_tokenRequestId`, minting the requester funds and moving payment
@@ -211,4 +218,16 @@ import "./lib/ArrayUtils.sol";
         return acceptedTokenList;
     }
 
+    function getTokenRequest(uint256 _tokenRequestId) 
+    public 
+    view 
+    returns (address requesterAddress, address depositToken, uint256 depositAmount, uint256 requestAmount, uint64 date) {
+        TokenRequest storage tokenRequest = tokenRequests[_tokenRequestId];
+
+        requesterAddress = tokenRequest.requesterAddress;
+        depositToken = tokenRequest.depositToken;
+        depositAmount = tokenRequest.depositAmount;
+        requestAmount = tokenRequest.requestAmount;
+    }
+    
 }

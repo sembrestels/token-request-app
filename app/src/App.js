@@ -47,6 +47,10 @@ function App(props) {
     actions.request(tokenAddress, depositAmount, requestedAmount, intentParams)
   }
 
+  const handleSubmit = async requestId => {
+    actions.submit(requestId)
+  }
+
   return (
     <Main>
       <Header
@@ -67,6 +71,7 @@ function App(props) {
           token={token}
           selectRequest={selectRequest}
           selectedRequest={selectedRequest}
+          onSubmit={handleSubmit}
         ></Requests>
       )}
       <SidePanel
