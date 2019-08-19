@@ -67,6 +67,7 @@ function App(props) {
         <span />
       ) : (
         <Requests
+          connectedAccount={account}
           requests={requests}
           token={token}
           selectRequest={selectRequest}

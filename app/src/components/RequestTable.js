@@ -74,7 +74,7 @@ function RequestTable({ requests, token, onMoreInfo, onSubmit }) {
             <time>{format(date, 'dd/MM/yy')}</time>,
             <Text>{`${formatTokenAmountSymbol(depositSymbol, depositAmount, false, depositDecimals)} `}</Text>,
             <Text>{`${formatTokenAmountSymbol(requestedSymbol, requestedAmount, false, requestedDecimals)} `}</Text>,
-            <Status positive={true}>{`${status}`}</Status>,
+            <Status status={status}>{`${status}`}</Status>,
             <ContextMenu>
               <ContextMenuItem onClick={() => handleOnMoreInfo(requestId)}>
                 <IconWrapper>
@@ -143,10 +143,21 @@ const IconWrapper = styled.span`
   height: 22px;
   color: ${theme.textSecondary};
 `
-
+//theme.infoPermissionsIcon : theme.negative
 const Status = styled(Text)`
   font-weight: 600;
-  color: ${({ positive }) => (positive ? theme.infoPermissionsIcon : theme.negative)};
+  color: ${({ status }) => {
+    switch (status) {
+      case requestStatus.PENDING:
+        return theme.infoPermissionsIcon
+      case requestStatus.REJECTED:
+        return theme.negative
+      case requestStatus.APPROVED:
+        return theme.positive
+      default:
+        return theme.positive
+    }
+  }};
 `
 
 export default RequestTable

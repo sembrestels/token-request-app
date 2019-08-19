@@ -33,21 +33,5 @@ export function shortenAddress(address, charsLength = 4) {
   return address.slice(0, charsLength + prefixLength) + '…' + address.slice(-charsLength)
 }
 
-export const getLog = (receipt, logName, argName) => {
-  const log = receipt.logs.find(({ event }) => event === logName)
-  return log ? log.args[argName] : null
-}
-
-export const getTransactionReceipt = hash => console.log('get hash', hash)
-new Promise((resolve, reject) => {
-  web3.eth.getTransactionReceipt(hash, async (err, tx) => {
-    if (err) {
-      console.log(err)
-      return reject(err)
-    }
-    console.log(tx)
-    resolve(tx)
-  })
-})
 // Re-export some web3-utils functions
 export { isAddress, toChecksumAddress, toUtf8, soliditySha3, toWei } from 'web3-utils'

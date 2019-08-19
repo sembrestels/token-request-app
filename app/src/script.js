@@ -165,8 +165,11 @@ async function requestRefunded(state, { requestId }) {
 }
 async function requestFinalised(state, { requestId }) {
   console.log('request accepted ', requestId)
+  const { requests } = state
+  const nextStatus = requestStatus.APPROVED
   return {
     ...state,
+    requests: await updateRequestStatus(requests, requestId, nextStatus),
   }
 }
 
@@ -207,6 +210,22 @@ async function getTokenData(tokenAddress, settings) {
     name,
     symbol,
     address: tokenAddress,
+  }
+}
+
+async function updateRequestStatus(requests, requestId, nextStatus) {
+  const requestIndex = requests.findIndex(request => request.requestId === requestId)
+
+  if (requestIndex !== -1) {
+    const nextRequests = Array.from(requests)
+    nextRequests[requestIndex] = {
+      ...nextRequests[requestIndex],
+      status: nextStatus,
+    }
+    console.log('nextRequests ', nextRequests)
+    return nextRequests
+  } else {
+    console.error(`Tried to update request #${requestId} that shouldn't exist!`)
   }
 }
 
