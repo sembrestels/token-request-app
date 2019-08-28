@@ -99,7 +99,7 @@ contract Template is TemplateBase {
         token.changeController(tokenManager);
 
         // Initialize apps
-        initApps(vault, tokenManager, tokenRequest, voting, token);
+        initApps(vault, tokenManager, tokenRequest, voting, token, 2);
 
         acl.createPermission(tokenManager, voting, voting.CREATE_VOTES_ROLE(), this);
         acl.createPermission(tokenManager, tokenRequest, tokenRequest.SET_TOKEN_MANAGER_ROLE(), root);
@@ -134,10 +134,10 @@ contract Template is TemplateBase {
         emit DeployInstance(dao);
     }
 
-    function initApps(Vault vault, TokenManager tokenManager, TokenRequest tokenRequest, Voting voting, MiniMeToken token) internal { 
+    function initApps(Vault vault, TokenManager tokenManager, TokenRequest tokenRequest, Voting voting, MiniMeToken token, uint256 timeToExpiry) internal { 
         vault.initialize();
         tokenManager.initialize(token, true, 0);
-        tokenRequest.initialize(tokenManager, vault);
+        tokenRequest.initialize(tokenManager, vault, timeToExpiry);
         voting.initialize(token, 50 * PCT, 20 * PCT, 1 days);
     }
 

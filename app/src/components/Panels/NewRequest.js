@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from 'styled-components'
-import { Button, Field, Info, Text, TextInput, theme } from '@aragon/ui'
+import { Button, Field, Text, TextInput, theme } from '@aragon/ui'
 import { useAppState } from '@aragon/api-react'
 import { useAragonApi, useApi } from '@aragon/api-react'
 import TokenSelector from '../TokenSelector'
@@ -12,8 +12,6 @@ import tokenDecimalsAbi from '../../abi/token-decimals.json'
 import tokenSymbolAbi from '../../abi/token-symbol.json'
 
 const NO_ERROR = Symbol('NO_ERROR')
-const BALANCE_NOT_ENOUGH_ERROR = Symbol('BALANCE_NOT_ENOUGH_ERROR')
-const DECIMALS_TOO_MANY_ERROR = Symbol('DECIMALS_TOO_MANY_ERROR')
 const tokenAbi = [].concat(tokenBalanceOfAbi, tokenDecimalsAbi, tokenSymbolAbi)
 
 function NewRequest({ network, panelOpened, onRequest }) {
@@ -70,7 +68,6 @@ function NewRequest({ network, panelOpened, onRequest }) {
   )
 
   const handleRequestedAmountUpdate = useCallback(e => {
-    console.log('requested change ', e.target.value)
     setRequestedAmount(e.target.value)
   })
 
@@ -148,7 +145,6 @@ function NewRequest({ network, panelOpened, onRequest }) {
   return (
     <form onSubmit={handleFormSubmit}>
       <TokenSelector activeIndex={selectedToken.index} onChange={handleSelectedToken} tokens={acceptedTokens} wide />
-      {/* {showTokenBadge && <TokenBadge address={selectedToken.value} symbol={selectedToken.data.symbol} />} */}
       <TokenBalance>
         <Text size="small" color={theme.textSecondary}>
           {tokenBalanceMessage}

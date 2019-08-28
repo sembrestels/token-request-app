@@ -50,20 +50,22 @@ import "./lib/ArrayUtils.sol";
     mapping(address => bool) public tokenAdded;
     address[] public acceptedTokenList;
 
+    uint256 public timeToExpiry;
     uint256 public nextTokenRequestId;
-    uint256 public testAddress;
+
     mapping(uint256 => TokenRequest) public tokenRequests; // ID => TokenRequest
     mapping(address => uint256[]) public addressesTokenRequestIds; // Sender address => List of ID's
 
     event TokenRequestCreated(uint256 requestId, address requesterAddress, address depositToken, uint256 depositAmount, uint256 requestAmount, uint64 date);
-    event TokenRequestRefunded(uint256 requestId,address refundToAddress, address refundToken, uint256 refundAmount);
-    event TokenRequestFinalised(uint256 requestId, address requester, address depositToken, uint256 depositAmount, uint256 requestAmount);
+    event TokenRequestRefunded(uint256 requestId,address refundToAddress, address refundToken, uint256 refundAmount, uint64 refundedDate);
+    event TokenRequestFinalised(uint256 requestId, address requester, address depositToken, uint256 depositAmount, uint256 requestAmount, uint64 finalizedDate);
     event AddToken(address indexed token);
     event RemoveToken(address indexed token);
 
-    function initialize(address _tokenManager, address _vault) external onlyInit {
+    function initialize(address _tokenManager, address _vault, uint256 _timeToExpiry) external onlyInit {
         tokenManager = TokenManager(_tokenManager);
         vault = _vault;
+        timeToExpiry = _timeToExpiry;
         initialized();
         //tokens.push(0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359);
     }
@@ -170,8 +172,9 @@ import "./lib/ArrayUtils.sol";
         }
 
         addressesTokenRequestIds[msg.sender].deleteItem(_tokenRequestId);
+        uint64 refundedDate = getTimestamp64();
 
-        emit TokenRequestRefunded(_tokenRequestId, refundToAddress, refundToken, refundAmount);
+        emit TokenRequestRefunded(_tokenRequestId, refundToAddress, refundToken, refundAmount, refundedDate);
     }
 
     // function submitTokenRequest(uint256 _tokenRequestId) external auth(SUBMIT_TOKEN_REQUEST_ROLE) {
@@ -206,8 +209,9 @@ import "./lib/ArrayUtils.sol";
         }
 
         tokenManager.mint(requesterAddress, requestAmount);
+        uint64 finalizedDate = getTimestamp64();
 
-        emit TokenRequestFinalised(_tokenRequestId, requesterAddress, depositToken, depositAmount, requestAmount);
+        emit TokenRequestFinalised(_tokenRequestId, requesterAddress, depositToken, depositAmount, requestAmount, finalizedDate);
     }
 
     function getAcceptedTokenList()

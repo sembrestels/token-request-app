@@ -1,34 +1,28 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import styled from 'styled-components'
 import {
   DataView,
   Text,
-  Countdown,
-  Box,
-  useTheme,
   ContextMenu,
   ContextMenuItem,
   IconCoin,
   theme,
   IconInfo,
   IconVote,
+  Countdown,
+  Timer,
 } from '@aragon/ui'
-import { formatTokenAmount, toHours } from '../lib/math-utils'
 import { formatTokenAmountSymbol } from '../lib/token-utils'
-import { format } from 'date-fns'
-import EmptyState from '../screens/EmptyState'
-import { request } from 'https'
+import { toHours } from '../lib/math-utils'
+import { format, compareDesc } from 'date-fns'
 import { requestStatus } from '../lib/constants'
 
 const PAGINATION = 10
 
-function RequestTable({ requests, token, onMoreInfo, onSubmit }) {
-  console.log('requests ', requests)
-
+function RequestTable({ requests, token, timeToExpiry, onMoreInfo, onSubmit, onWithdraw }) {
   const handleOnMoreInfo = useCallback(
     requestId => {
       onMoreInfo(requestId)
-      console.log('requessssssst info', requestId)
     },
     [onMoreInfo]
   )
@@ -40,24 +34,51 @@ function RequestTable({ requests, token, onMoreInfo, onSubmit }) {
     [onSubmit]
   )
 
+  const handleWithdraw = useCallback(
+    requestId => {
+      onWithdraw(requestId)
+    },
+    [onWithdraw]
+  )
+
+  const renderExpirationTime = (date, timeToExpiry, status, actionDate) => {
+    if (status === requestStatus.PENDING) {
+      const now = new Date()
+      const endDateMs = date + timeToExpiry * 60 * 1000
+      const end = new Date(endDateMs)
+      const removeDaysAndHours = toHours(end - now) < 1
+
+      return <Countdown end={end} removeDaysAndHours={removeDaysAndHours} />
+    } else {
+      console.log('STATUSSSSSS ', status)
+      console.log('action date ', date)
+      return <time>{format(actionDate, 'dd/MM/yy')}</time>
+    }
+  }
   return (
     <>
-      {requests.length > 0 ? (
+      {requests && requests.length > 0 && (
         <DataView
-          fields={['Date', 'Deposited', 'Requested', 'Status', 'Actions']}
-          entries={requests.map(r => [
-            r.requestId,
-            r.date,
-            r.depositAmount,
-            r.depositSymbol,
-            r.depositToken,
-            r.depositName,
-            r.depositDecimals,
-            r.requestAmount,
-            r.status,
-            token.symbol,
-            token.decimals,
-          ])}
+          fields={['Request Date', 'Deposited', 'Requested', 'Expiry by', 'Status', 'Actions']}
+          entries={requests
+            .sort(({ date: dateLeft }, { date: dateRight }) =>
+              // Sort by date descending
+              compareDesc(dateLeft, dateRight)
+            )
+            .map(r => [
+              r.requestId,
+              r.date,
+              r.depositAmount,
+              r.depositSymbol,
+              r.depositToken,
+              r.depositName,
+              r.depositDecimals,
+              r.requestAmount,
+              r.status,
+              r.actionDate,
+              token.symbol,
+              token.decimals,
+            ])}
           renderEntry={([
             requestId,
             date,
@@ -68,20 +89,16 @@ function RequestTable({ requests, token, onMoreInfo, onSubmit }) {
             depositDecimals,
             requestedAmount,
             status,
+            actionDate,
             requestedSymbol,
             requestedDecimals,
           ]) => [
             <time>{format(date, 'dd/MM/yy')}</time>,
             <Text>{`${formatTokenAmountSymbol(depositSymbol, depositAmount, false, depositDecimals)} `}</Text>,
             <Text>{`${formatTokenAmountSymbol(requestedSymbol, requestedAmount, false, requestedDecimals)} `}</Text>,
+            renderExpirationTime(date, timeToExpiry, status, actionDate),
             <Status status={status}>{`${status}`}</Status>,
             <ContextMenu>
-              <ContextMenuItem onClick={() => handleOnMoreInfo(requestId)}>
-                <IconWrapper>
-                  <IconInfo />
-                </IconWrapper>
-                <div css="margin-left: 15px">Info</div>
-              </ContextMenuItem>
               {status === requestStatus.PENDING && (
                 <ContextMenuItem onClick={() => handleSubmit(requestId)}>
                   <IconWrapper>
@@ -90,51 +107,23 @@ function RequestTable({ requests, token, onMoreInfo, onSubmit }) {
                   <div css="margin-left: 15px">Submit</div>
                 </ContextMenuItem>
               )}
-              <ContextMenuItem
-                onClick={() => {
-                  console.log('requestId', requestId)
-                }}
-              >
-                <IconWrapper>
-                  <IconCoin />
-                </IconWrapper>
-                <div css="margin-left: 15px">Withdraw</div>
-              </ContextMenuItem>
+              {(status === requestStatus.PENDING || status === requestStatus.EXPIRED) && (
+                <ContextMenuItem onClick={() => handleWithdraw(requestId)}>
+                  <IconWrapper>
+                    <IconCoin />
+                  </IconWrapper>
+                  <div css="margin-left: 15px">Withdraw</div>
+                </ContextMenuItem>
+              )}
             </ContextMenu>,
           ]}
           mode="table"
           entriesPerPage={PAGINATION}
-          // onSelectEntries={selected => console.log('selected', selected)}
         />
-      ) : (
-        <Box style={{ textAlign: 'center' }}>
-          <Text>No requests</Text>
-        </Box>
       )}
     </>
   )
 }
-
-const Wrap = styled.div`
-  display: flex;
-  justify-content: space-between;
-`
-const Title = styled.h1`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  font-weight: 600;
-  margin: 30px 30px 20px 0;
-`
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-`
-
 const IconWrapper = styled.span`
   display: flex;
   align-items: center;
@@ -143,7 +132,6 @@ const IconWrapper = styled.span`
   height: 22px;
   color: ${theme.textSecondary};
 `
-//theme.infoPermissionsIcon : theme.negative
 const Status = styled(Text)`
   font-weight: 600;
   color: ${({ status }) => {
@@ -154,6 +142,8 @@ const Status = styled(Text)`
         return theme.negative
       case requestStatus.APPROVED:
         return theme.positive
+      case requestStatus.EXPIRED:
+        return theme.negative
       default:
         return theme.positive
     }

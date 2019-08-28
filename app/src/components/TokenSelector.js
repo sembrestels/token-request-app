@@ -1,5 +1,5 @@
 import React from 'react'
-import { DropDown, Field, TextInput } from '@aragon/ui'
+import { DropDown, Field } from '@aragon/ui'
 import { useNetwork } from '@aragon/api-react'
 import { ETHER_TOKEN_VERIFIED_BY_SYMBOL } from '../lib/verified-tokens'
 import { isAddress } from '../lib/web3-utils'
@@ -26,7 +26,6 @@ class TokenSelector extends React.Component {
   handleChange = index => {
     this.setState({ ...INITIAL_STATE }, () => {
       const address = this.getAddressFromTokens(index)
-      console.log('inside address ', address)
       this.props.onChange({
         address,
         index,
@@ -75,8 +74,7 @@ class TokenSelector extends React.Component {
     ))
   }
   render() {
-    const { customToken } = this.state
-    const { activeIndex, label, labelCustomToken } = this.props
+    const { activeIndex, label } = this.props
     const items = this.getItems()
     return (
       <React.Fragment>

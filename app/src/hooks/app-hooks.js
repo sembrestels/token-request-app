@@ -1,9 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useAppState, useApi, useAragonApi } from '@aragon/api-react'
-import { useSidePanel } from './utils-hooks'
-import { getEventArgument, getLog } from '../lib/web3-utils'
-import { TextEncoder } from 'util'
-var Web3EthAbi = require('web3-eth-abi')
+import { useSidePanel, useNow } from './utils-hooks'
+import { hasExpired } from '../lib/token-request-utils'
+import { requestStatus } from '../lib/constants'
 
 export function useRequestAction(onDone) {
   const { api } = useAragonApi()
@@ -39,6 +38,23 @@ export function useSubmitAction(onDone) {
   )
 }
 
+export function useWithdrawAction(onDone) {
+  const { api } = useAragonApi()
+
+  return useCallback(
+    requestId => {
+      try {
+        api.refundTokenRequest(requestId).toPromise()
+
+        onDone()
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    [api, onDone]
+  )
+}
+
 // Get the request currently selected, or null otherwise.
 export function useSelectedRequest(requests) {
   const [selectedRequestId, setSelectedRequestId] = useState('-1')
@@ -51,7 +67,6 @@ export function useSelectedRequest(requests) {
     if (selectedRequestId === '-1') {
       return null
     }
-    console.log('selectedRequestId ', selectedRequestId)
     return requests.find(request => request.requestId === selectedRequestId) || null
   }, [selectedRequestId, requests])
 
@@ -65,14 +80,41 @@ export function useSelectedRequest(requests) {
   ]
 }
 
+const useRequests = () => {
+  const { requests, timeToExpiry } = useAppState()
+  const now = useNow()
+  const requestsExpired = (requests || []).map(request => {
+    return hasExpired(request.date, now, timeToExpiry)
+  })
+
+  const requestStatusKey = requestsExpired.join('')
+  return useMemo(
+    () =>
+      (requests || []).map((request, index) => ({
+        ...request,
+        status:
+          requests[index].status === requestStatus.PENDING && requestsExpired[index]
+            ? requestStatus.EXPIRED
+            : requests[index].status,
+        actionDate:
+          requests[index].status === requestStatus.PENDING && requestsExpired[index]
+            ? requests[index].date + timeToExpiry * 60 * 1000
+            : requests[index].actionDate,
+      })),
+    [requests, requestStatusKey]
+  )
+}
+
 export function useAppLogic() {
-  const { acceptedTokens, account, token, isSyncing, ready, requests, userRequests } = useAppState()
+  const { acceptedTokens, account, token, isSyncing, ready, timeToExpiry } = useAppState()
+  const requests = useRequests()
   const [selectedRequest, selectRequest] = useSelectedRequest(requests)
   const panelState = useSidePanel()
 
   const actions = {
     request: useRequestAction(panelState.requestClose),
     submit: useSubmitAction(panelState.requestClose),
+    withdraw: useWithdrawAction(panelState.requestClose),
   }
 
   return {
@@ -81,6 +123,7 @@ export function useAppLogic() {
     acceptedTokens,
     account,
     token,
+    timeToExpiry,
     actions,
     requests,
     selectedRequest,

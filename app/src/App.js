@@ -1,28 +1,48 @@
-import React, { useState } from 'react'
-import BN from 'bn.js'
+import React, { useState, useEffect } from 'react'
+import styled from 'styled-components'
 import PropTypes from 'prop-types'
 import { useAragonApi, useApi } from '@aragon/api-react'
-import { Main, SidePanel, SyncIndicator, Badge, Header, Button } from '@aragon/ui'
+import { Main, SidePanel, SyncIndicator, Tabs, Header, GU } from '@aragon/ui'
 import NewRequest from './components/Panels/NewRequest'
 import { useAppLogic } from './hooks/app-hooks'
 import requestIcon from './assets/icono.svg'
 import { ETHER_TOKEN_FAKE_ADDRESS } from './lib/token-utils'
 import Requests from './screens/Requests'
 import MainButton from './components/MainButton'
+import { requestStatus } from './lib/constants'
 
-function App(props) {
+const useRequests = (req, connectedAccount) => {
+  const pendingRequests = req.filter(request => request.status === requestStatus.PENDING)
+  const rejectedRequests = req.filter(request => request.status === requestStatus.EXPIRED)
+  const approvedRequests = req.filter(request => request.status === requestStatus.APPROVED)
+  const userRequests = req.filter(request => request.requesterAddress === connectedAccount)
+  return { pendingRequests, rejectedRequests, approvedRequests, userRequests }
+}
+
+const App = () => {
   const {
     panelState,
     isSyncing,
     acceptedTokens,
     account,
     token,
+    timeToExpiry,
     actions,
     requests,
     selectedRequest,
     selectRequest,
   } = useAppLogic()
+
   const api = useApi()
+  const [screenIndex, setScreenIndex] = useState(0)
+  const [userRequests, setUserRequests] = useState()
+
+  useEffect(() => {
+    if (requests) {
+      const filteredRequests = useRequests(requests, account)
+      setUserRequests(filteredRequests.userRequests)
+    }
+  }, [requests, screenIndex])
 
   const handleRequest = async (tokenAddress, depositAmount, requestedAmount) => {
     let intentParams
@@ -51,8 +71,17 @@ function App(props) {
     actions.submit(requestId)
   }
 
+  const handleWithdraw = async requestId => {
+    actions.withdraw(requestId)
+  }
+
+  const handleTabChange = screenIndex => {
+    setScreenIndex(screenIndex)
+  }
+
   return (
     <Main>
+      <SyncIndicator visible={isSyncing} />
       <Header
         primary="Token Request"
         secondary={
@@ -63,18 +92,34 @@ function App(props) {
           />
         }
       />
-      {!requests ? (
-        <span />
-      ) : (
-        <Requests
-          connectedAccount={account}
-          requests={requests}
-          token={token}
-          selectRequest={selectRequest}
-          selectedRequest={selectedRequest}
-          onSubmit={handleSubmit}
-        ></Requests>
-      )}
+      <>
+        <TabsWrapper>
+          <Tabs items={['Requests', 'My Requests']} selected={screenIndex} onChange={handleTabChange} />
+        </TabsWrapper>
+        {screenIndex === 0 && (
+          <Requests
+            requests={requests}
+            token={token}
+            timeToExpiry={timeToExpiry}
+            selectRequest={selectRequest}
+            selectedRequest={selectedRequest}
+            onSubmit={handleSubmit}
+            onWithdraw={handleWithdraw}
+          ></Requests>
+        )}
+        {screenIndex === 1 && (
+          <Requests
+            requests={userRequests}
+            token={token}
+            timeToExpiry={timeToExpiry}
+            selectRequest={selectRequest}
+            selectedRequest={selectedRequest}
+            onSubmit={handleSubmit}
+            onWithdraw={handleWithdraw}
+          ></Requests>
+        )}
+      </>
+
       <SidePanel
         title="New request"
         opened={panelState.visible}
@@ -86,6 +131,10 @@ function App(props) {
     </Main>
   )
 }
+
+const TabsWrapper = styled.div`
+  margin: 0 -${Main.HORIZONTAL_PADDING}px ${3 * GU}px;
+`
 
 export default () => {
   const { api, appState } = useAragonApi()

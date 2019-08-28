@@ -114,3 +114,7 @@ export function toDecimals(num, decimals, { truncate = true } = {}) {
 export function safeDiv(num, denom) {
   return denom ? num / denom : 0
 }
+
+export function toHours(ms) {
+  return ms / 3600000
+}
