@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react'
 import styled from 'styled-components'
-import { DataView, Text, ContextMenu, ContextMenuItem, IconCoin, theme, IconVote, Countdown } from '@aragon/ui'
+import { DataView, Text, ContextMenu, ContextMenuItem, IconCoin, theme, IconVote, Countdown, Timer } from '@aragon/ui'
 import { formatTokenAmountSymbol } from '../lib/token-utils'
-import { toHours } from '../lib/math-utils'
+import { toHours, hoursToMs } from '../lib/math-utils'
 import { format, compareDesc } from 'date-fns'
 import { requestStatus } from '../lib/constants'
 
@@ -26,11 +26,11 @@ function RequestTable({ requests, token, timeToExpiry, onSubmit, onWithdraw }) {
   const renderExpirationTime = (date, timeToExpiry, status, actionDate) => {
     if (status === requestStatus.PENDING) {
       const now = new Date()
-      const endDateMs = date + timeToExpiry * 60 * 1000
+      const endDateMs = date + hoursToMs(timeToExpiry)
       const end = new Date(endDateMs)
       const removeDaysAndHours = toHours(end - now) < 1
 
-      return <Countdown end={end} removeDaysAndHours={removeDaysAndHours} />
+      return <Timer end={end} />
     } else {
       console.log('STATUSSSSSS ', status)
       console.log('action date ', date)

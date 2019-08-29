@@ -3,6 +3,7 @@ import { useAppState, useAragonApi } from '@aragon/api-react'
 import { useSidePanel, useNow } from './utils-hooks'
 import { hasExpired } from '../lib/token-request-utils'
 import { requestStatus } from '../lib/constants'
+import { hoursToMs } from '../lib/math-utils'
 
 export function useRequestAction(onDone) {
   const { api } = useAragonApi()
@@ -73,7 +74,7 @@ const useRequests = () => {
             : requests[index].status,
         actionDate:
           requests[index].status === requestStatus.PENDING && requestsExpired[index]
-            ? requests[index].date + timeToExpiry * 60 * 1000
+            ? requests[index].date + hoursToMs(timeToExpiry)
             : requests[index].actionDate,
       })),
     [requests, requestStatusKey]
