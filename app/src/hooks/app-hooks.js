@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { useAppState, useApi, useAragonApi } from '@aragon/api-react'
+import { useAppState, useAragonApi } from '@aragon/api-react'
 import { useSidePanel, useNow } from './utils-hooks'
 import { hasExpired } from '../lib/token-request-utils'
 import { requestStatus } from '../lib/constants'
@@ -55,31 +55,6 @@ export function useWithdrawAction(onDone) {
   )
 }
 
-// Get the request currently selected, or null otherwise.
-export function useSelectedRequest(requests) {
-  const [selectedRequestId, setSelectedRequestId] = useState('-1')
-
-  const { ready } = useAppState()
-  // The memoized vote currently selected.
-  const selectedRequest = useMemo(() => {
-    // The `ready` check prevents a request to be selected
-    // until the app state is fully ready.
-    if (selectedRequestId === '-1') {
-      return null
-    }
-    return requests.find(request => request.requestId === selectedRequestId) || null
-  }, [selectedRequestId, requests])
-
-  return [
-    selectedRequest,
-
-    // setSelectedRequestId() is exported directly: since `selectedRequestId` is
-    // set in the `selectedRequest` dependencies, it means that the useMemo()
-    // will be updated every time `selectedRequestId` changes.
-    setSelectedRequestId,
-  ]
-}
-
 const useRequests = () => {
   const { requests, timeToExpiry } = useAppState()
   const now = useNow()
@@ -108,7 +83,6 @@ const useRequests = () => {
 export function useAppLogic() {
   const { acceptedTokens, account, token, isSyncing, ready, timeToExpiry } = useAppState()
   const requests = useRequests()
-  const [selectedRequest, selectRequest] = useSelectedRequest(requests)
   const panelState = useSidePanel()
 
   const actions = {
@@ -126,7 +100,5 @@ export function useAppLogic() {
     timeToExpiry,
     actions,
     requests,
-    selectedRequest,
-    selectRequest,
   }
 }

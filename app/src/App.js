@@ -20,18 +20,7 @@ const useRequests = (req, connectedAccount) => {
 }
 
 const App = () => {
-  const {
-    panelState,
-    isSyncing,
-    acceptedTokens,
-    account,
-    token,
-    timeToExpiry,
-    actions,
-    requests,
-    selectedRequest,
-    selectRequest,
-  } = useAppLogic()
+  const { panelState, isSyncing, acceptedTokens, account, token, timeToExpiry, actions, requests } = useAppLogic()
 
   const api = useApi()
   const [screenIndex, setScreenIndex] = useState(0)
@@ -101,8 +90,6 @@ const App = () => {
             requests={requests}
             token={token}
             timeToExpiry={timeToExpiry}
-            selectRequest={selectRequest}
-            selectedRequest={selectedRequest}
             onSubmit={handleSubmit}
             onWithdraw={handleWithdraw}
           ></Requests>
@@ -112,8 +99,6 @@ const App = () => {
             requests={userRequests}
             token={token}
             timeToExpiry={timeToExpiry}
-            selectRequest={selectRequest}
-            selectedRequest={selectedRequest}
             onSubmit={handleSubmit}
             onWithdraw={handleWithdraw}
           ></Requests>

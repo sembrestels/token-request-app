@@ -1,17 +1,6 @@
 import React, { useCallback } from 'react'
 import styled from 'styled-components'
-import {
-  DataView,
-  Text,
-  ContextMenu,
-  ContextMenuItem,
-  IconCoin,
-  theme,
-  IconInfo,
-  IconVote,
-  Countdown,
-  Timer,
-} from '@aragon/ui'
+import { DataView, Text, ContextMenu, ContextMenuItem, IconCoin, theme, IconVote, Countdown } from '@aragon/ui'
 import { formatTokenAmountSymbol } from '../lib/token-utils'
 import { toHours } from '../lib/math-utils'
 import { format, compareDesc } from 'date-fns'
@@ -19,14 +8,7 @@ import { requestStatus } from '../lib/constants'
 
 const PAGINATION = 10
 
-function RequestTable({ requests, token, timeToExpiry, onMoreInfo, onSubmit, onWithdraw }) {
-  const handleOnMoreInfo = useCallback(
-    requestId => {
-      onMoreInfo(requestId)
-    },
-    [onMoreInfo]
-  )
-
+function RequestTable({ requests, token, timeToExpiry, onSubmit, onWithdraw }) {
   const handleSubmit = useCallback(
     requestId => {
       onSubmit(requestId)
